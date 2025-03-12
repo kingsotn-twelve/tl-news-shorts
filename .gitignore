@@ -2,4 +2,4 @@ audio/
 combined/
 videos/
 .env
-
+__pycache__/
