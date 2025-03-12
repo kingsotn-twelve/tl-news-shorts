@@ -1,0 +1,35 @@
+{
+  "location": "A3, Wörth an der Donau, Germany",
+  "storyboard": [
+    {
+      "index": 1,
+      "highlight_description": "Initial scene of accident.",
+      "summary": "Three truck accident causes A3 closure.",
+      "shot_type": "wide"
+    },
+    {
+      "index": 2,
+      "highlight_description": "Truck with hazardous goods.",
+      "summary": "Dangerous goods spill from overturned truck.",
+      "shot_type": "close-up"
+    },
+    {
+      "index": 3,
+      "highlight_description": "Police at accident site.",
+      "summary": "Police secure area, no immediate danger.",
+      "shot_type": "medium"
+    },
+    {
+      "index": 4,
+      "highlight_description": "Driver's rescue scene.",
+      "summary": "Trapped driver rescued and hospitalized.",
+      "shot_type": "close-up"
+    },
+    {
+      "index": 5,
+      "highlight_description": "Team handling hazardous materials.",
+      "summary": "Hazardous goods team on site until midday.",
+      "shot_type": "wide"
+    }
+  ]
+}
