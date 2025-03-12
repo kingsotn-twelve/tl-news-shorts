@@ -50,19 +50,21 @@ mv example.env .env
 
 The script requires a locally downloaded video file specified in `LOCAL_VIDEO_PATH` to avoid slow ffmpeg processing of streaming HLS formats.
 
+you must also configure the following in [project_config.py](project_config.py)
+
 ```python
 # Set the values in project_config.py:
 
 # project name
-PROJECT = "250219_nif_ndby_LKW_Crash"
+PROJECT = ""
 # path to the local video file
-LOCAL_VIDEO_PATH = "~/Downloads/12labs/250219_nif_ndby_LKW_Crash/250219_News5_LKW_Crash_A3_1.mp4"
+LOCAL_VIDEO_PATH = ""
 # path to the raw news file
-RAW_NEWS_FILE_PATH = "~/Downloads/12labs/250219_nif_ndby_LKW_Crash/translated_raw.txt"
+RAW_NEWS_FILE_PATH = ""
 # id of the twelvelabs index
-TWELVELABS_INDEX_ID = "67cf4c17c14a54d6e58d1388"
+TWELVELABS_INDEX_ID = ""
 # id of the twelvelabs video
-TWELVELABS_VIDEO_ID = "67cf69a8f45d9b64a583534c"
+TWELVELABS_VIDEO_ID = ""
 
 ```
 
