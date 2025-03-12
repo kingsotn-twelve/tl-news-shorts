@@ -9,29 +9,19 @@ from twelvelabs import TwelveLabs
 from twelvelabs.models import SearchResult
 from elevenlabs import VoiceSettings
 import os
+import json
+from datetime import datetime
+from project_config import (
+    PROJECT,
+    LOCAL_VIDEO_PATH,
+    RAW_NEWS_FILE_PATH,
+    TWELVELABS_INDEX_ID,
+    TWELVELABS_VIDEO_ID,
+    CACHED_SEARCH_TO_CLIPS,
+    CLIPS_USED,
+)
 
 load_dotenv()
-
-PROJECT = "250219_nif_ndby_LKW_Crash"
-LOCAL_VIDEO_PATH = (
-    "~/Downloads/12labs/250219_nif_ndby_LKW_Crash/250219_News5_LKW_Crash_A3_1.mp4"
-)
-RAW_NEWS_FILE_PATH = "~/Downloads/12labs/250219_nif_ndby_LKW_Crash/translated_raw.txt"
-TWELVELABS_INDEX_ID = "67cf4c17c14a54d6e58d1388"
-TWELVELABS_VIDEO_ID = "67cf69a8f45d9b64a583534c"
-CACHED_SEARCH_TO_CLIPS: Dict[str, List[SearchResult]] = {}
-CLIPS_USED = {}
-
-
-# PROJECT = "250221_nif_schw_irrfahrt_rentner"
-# LOCAL_VIDEO_PATH = "~/Downloads/12labs/250221_nif_schw_irrfahrt_rentner/250221_NSN_Renterunfall Neu_Ulm_1_lowres.mp4"
-# RAW_NEWS_FILE_PATH = (
-#     "~/Downloads/12labs/250221_nif_schw_irrfahrt_rentner/translated.txt"
-# )
-# TWELVELABS_INDEX_ID = "67cf4c17c14a54d6e58d1388"
-# TWELVELABS_VIDEO_ID = "67cf699ff45d9b64a5835347"
-# CACHED_SEARCH_TO_CLIPS: Dict[str, List[SearchResult]] = {}
-# CLIPS_USED = {}
 
 
 class ReturnedSearchResult(BaseModel):
@@ -289,17 +279,18 @@ def combine_clips(storyboard: StoryBoard) -> str:
 
 
 def combine_audio_and_video(combined_clips_path: str, audio_file_path: str) -> str:
-    # Create combined directory if it doesn't exist
-    os.makedirs("combined", exist_ok=True)
+    # Create project-specific directory under combined/
+    project_dir = f"combined/{PROJECT}"
+    os.makedirs(project_dir, exist_ok=True)
 
     # Generate unique ID for this operation
     unique_id = str(uuid.uuid4())
 
     # Create output file path with unique ID
-    final_output_path = f"combined/{PROJECT}_final_{unique_id}.mp4"
+    final_output_path = f"{project_dir}/{PROJECT}_final_{unique_id}.mp4"
 
     # Create temporary file for mixed audio
-    temp_mixed_audio = f"combined/{PROJECT}_mixed_audio_{unique_id}.mp3"
+    temp_mixed_audio = f"{project_dir}/{PROJECT}_mixed_audio_{unique_id}.mp3"
 
     # First, mix the original audio with the voiceover with better volume control
     # Using volume detection and normalization before mixing
@@ -361,6 +352,45 @@ def combine_audio_and_video(combined_clips_path: str, audio_file_path: str) -> s
     return final_output_path
 
 
+def save_artifacts(storyboard: StoryBoard, voiceover_text: str):
+    """Save project artifacts to the project directory"""
+
+    # Create project directory if it doesn't exist
+    project_dir = f"combined/{PROJECT}"
+    os.makedirs(project_dir, exist_ok=True)
+
+    # Save storyboard as JSON
+    with open(f"{project_dir}/storyboard.json", "w") as f:
+        f.write(storyboard.model_dump_json(indent=2))
+
+    # Save voiceover text
+    with open(f"{project_dir}/voiceover_text.txt", "w") as f:
+        f.write(voiceover_text)
+
+    # Save clips searched data
+    with open(f"{project_dir}/clips_searched.json", "w") as f:
+        # Convert SearchResult objects to serializable format
+        serializable_clips = {}
+        for key, search_result in CACHED_SEARCH_TO_CLIPS.items():
+            # Convert the search result to a dict representation
+            if hasattr(search_result, "model_dump"):
+                serializable_clips[key] = search_result.model_dump()
+            else:
+                # Fallback for non-pydantic objects
+                serializable_clips[key] = str(search_result)
+
+        json.dump(serializable_clips, f, indent=2)
+
+    # Save a copy of the project config
+    with open(f"{project_dir}/project_config.py", "w") as f:
+        f.write(f"# Project config saved on {datetime.now().isoformat()}\n\n")
+        f.write(f"PROJECT = {repr(PROJECT)}\n")
+        f.write(f"LOCAL_VIDEO_PATH = {repr(LOCAL_VIDEO_PATH)}\n")
+        f.write(f"RAW_NEWS_FILE_PATH = {repr(RAW_NEWS_FILE_PATH)}\n")
+        f.write(f"TWELVELABS_INDEX_ID = {repr(TWELVELABS_INDEX_ID)}\n")
+        f.write(f"TWELVELABS_VIDEO_ID = {repr(TWELVELABS_VIDEO_ID)}\n")
+
+
 if __name__ == "__main__":
     storyboard = create_storyboard(RAW_NEWS_FILE_PATH)
     print("finished creating storyboard")
@@ -377,8 +407,9 @@ if __name__ == "__main__":
     audio_file_path = generate_audio(to_voiceover)
     print("finished generating audio")
 
-    # combined_clips_path = "/Users/kingsotn-twelve/work/test/german-news/videos/250219_nif_ndby_LKW_Crash_6246ccb6-56bd-4190-b052-7fa7ff406871.mp4"
-    # audio_file_path = "/Users/kingsotn-twelve/work/test/german-news/audio/250219_nif_ndby_LKW_Crash.mp3"
+    # Save all artifacts
+    save_artifacts(storyboard, to_voiceover)
+    print("saved project artifacts")
 
     final_output_path = combine_audio_and_video(combined_clips_path, audio_file_path)
     print(f"finished combining audio and video: {final_output_path}")
