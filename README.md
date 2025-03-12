@@ -1,8 +1,8 @@
 # News Video Generator
 
-![](example_output/250219_nif_ndby_LKW_Crash_final_a089bdfd-3992-4ebe-bce2-e07b9a2acce8.mp4)
-
 Automatically generates news video clips from raw video footage using twelvelabs and openai.
+
+https://github.com/user-attachments/assets/78ebe6ce-1603-4613-b315-fe7075e95a2b
 
 ## Requirements
 
