@@ -19,6 +19,7 @@ from project_config import (
     TWELVELABS_VIDEO_ID,
     CACHED_SEARCH_TO_CLIPS,
     CLIPS_USED,
+    TYPE_PROMPT,
 )
 
 load_dotenv()
@@ -46,7 +47,9 @@ class StoryBoard(BaseModel):
 
 
 def create_storyboard(raw_news_file_path: str) -> StoryBoard:
-    SYSTEM_PROMPT = """Generate a structured JSON storyboard highlighting key moments in a video. ensure that the final storyboard can be narrated in around 25 seconds long"""
+    SYSTEM_PROMPT = """Generate a structured JSON storyboard highlighting key moments in a video. 
+    the first storyboard must be an introduction to the video. the rest of the storyboard should be a summary of the video. ensure that the final storyboard can be narrated in around 25 seconds long. You are limited to at most 6 storyboard events including the introduction.
+    """
 
     # Expand the tilde to the user's home directory
     expanded_path = os.path.expanduser(raw_news_file_path)
@@ -81,7 +84,7 @@ class VoiceOver(BaseModel):
 
 def create_voiceover_text(storyboard: StoryBoard, raw_news_file_path: str) -> str:
     client = OpenAI()
-    SYSTEM_PROMPT = """Using the provided JSON highlights and raw news, create a concise, factual voiceover text (about 25 seconds) clearly summarizing key events. Emphasize precise details."""
+    SYSTEM_PROMPT = f"""Using the provided JSON highlights and text description of the video, generate a {TYPE_PROMPT} (about 25 seconds) clearly summarizing key events. Each event should be summarized in 8-12 words."""
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-2024-08-06",
         messages=[
@@ -94,9 +97,10 @@ def create_voiceover_text(storyboard: StoryBoard, raw_news_file_path: str) -> st
     voiceover: VoiceOver = completion.choices[0].message.parsed
 
     voiceover_text = voiceover.to_voiceover
-    location = storyboard.location
+    # location = storyboard.location
 
-    return_text = f"{location}\n\n{voiceover_text}"
+    # return_text = f"{location}\n\n{voiceover_text}"
+    return_text = f"{voiceover_text}"
     return return_text
 
 
@@ -107,13 +111,14 @@ def generate_audio(text):
 
     response = client.text_to_speech.convert(
         text=text,
-        voice_id="JBFqnCBsd6RMkjVDRZzb",
+        voice_id="ZQe5CZNOzWyzPSCn5a3c",
         model_id="eleven_multilingual_v2",
         output_format="mp3_44100_128",
         voice_settings=VoiceSettings(
-            stability=0.5,
+            stability=0.3,
             similarity_boost=0.75,
             speed=1.1,
+            style=0.8,
         ),
     )
 
@@ -391,6 +396,21 @@ def save_artifacts(storyboard: StoryBoard, voiceover_text: str):
         f.write(f"TWELVELABS_VIDEO_ID = {repr(TWELVELABS_VIDEO_ID)}\n")
 
 
+# Add this function to initialize the global variables when called from app.py
+def initialize_globals(project_name=None):
+    global PROJECT, CACHED_SEARCH_TO_CLIPS, CLIPS_USED
+
+    if project_name:
+        PROJECT = project_name
+
+    # Reset the global dictionaries
+    CACHED_SEARCH_TO_CLIPS = {}
+    CLIPS_USED = {}
+
+    return PROJECT
+
+
+# Modify the main block to allow for importing without running
 if __name__ == "__main__":
     storyboard = create_storyboard(RAW_NEWS_FILE_PATH)
     print("finished creating storyboard")
@@ -398,14 +418,14 @@ if __name__ == "__main__":
     to_voiceover = create_voiceover_text(storyboard, RAW_NEWS_FILE_PATH)
     print("finished creating voiceover text")
 
+    audio_file_path = generate_audio(to_voiceover)
+    print("finished generating audio")
+
     get_clips(storyboard)
     print("found clips on twelvelabs")
 
     combined_clips_path = combine_clips(storyboard)
     print(f"finished combining clips: {combined_clips_path}")
-
-    audio_file_path = generate_audio(to_voiceover)
-    print("finished generating audio")
 
     # Save all artifacts
     save_artifacts(storyboard, to_voiceover)
