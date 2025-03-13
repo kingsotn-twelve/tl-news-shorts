@@ -56,15 +56,15 @@ you must also configure the following in [project_config.py](project_config.py)
 # Set the values in project_config.py:
 
 # project name
-PROJECT = ""
-# path to the local video file
-LOCAL_VIDEO_PATH = ""
-# path to the raw news file
-RAW_NEWS_FILE_PATH = ""
+PROJECT = str
 # id of the twelvelabs index
-TWELVELABS_INDEX_ID = ""
+TWELVELABS_INDEX_ID = str
 # id of the twelvelabs video
-TWELVELABS_VIDEO_ID = ""
+TWELVELABS_VIDEO_ID = str
+# path to the local video file
+LOCAL_VIDEO_PATH = str | None
+# path to the raw news file
+RAW_NEWS_FILE_PATH = str | None
 
 ```
 
